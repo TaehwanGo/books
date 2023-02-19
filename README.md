@@ -14,3 +14,4 @@
 - [x] UX/UI의 10가지 심리학 법칙(Laws of UX)
 - [ ] 클린 아키텍쳐
 - [ ] 실용주의 프로그래머
+- [ ] 쏙쏙 들어오는 함수형 코딩(Grokking Simplicity)
