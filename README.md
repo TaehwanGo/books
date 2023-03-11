@@ -15,3 +15,6 @@
 - [ ] 클린 아키텍쳐
 - [ ] 실용주의 프로그래머
 - [ ] 쏙쏙 들어오는 함수형 코딩(Grokking Simplicity)
+- [ ] [컴퓨터 네트워킹 : 하향식 접근(Computer Networking: A Top-Down Approach)](http://www.yes24.com/Product/Goods/112228953)
+- [ ] [데이터 베ㅣ스 시스템(Database System Concepts)](http://www.yes24.com/Product/Goods/103156919)
+- [ ] [Introduction to Algorithms](http://www.yes24.com/Product/Goods/13776831)
