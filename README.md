@@ -18,3 +18,4 @@
 - [ ] [컴퓨터 네트워킹 : 하향식 접근(Computer Networking: A Top-Down Approach)](http://www.yes24.com/Product/Goods/112228953)
 - [ ] [데이터 베이스 시스템(Database System Concepts)](http://www.yes24.com/Product/Goods/103156919)
 - [ ] [Introduction to Algorithms](http://www.yes24.com/Product/Goods/13776831)
+- [ ] 인스파이어드(Inspired - How to create tech products customers love)
