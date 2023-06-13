@@ -241,6 +241,204 @@ function setFieldByName(cart, name, field, value) {
 
 - 일급으로 만들면 강력한 힘이 생깁니다
 
-## TODO
+## 반복문 예제: 먹고 치우기
 
-- 252쪽 부터(고차함수 시작 부분)
+### 반복문을 안쓰게 할 수 있을까?
+
+- 반복문을 일급으로 만들어보자
+- 일급함수를 인자로 받는 함수를 만든다 == 고차 함수
+- 일급(first-class)은 인자로 전달할 수 있다는 뜻입니다
+- 고차함수(higher-order)라는 말은 함수가 다른 함수를 인자로 받을 수 있다는 말입니다
+  - 일급 함수가 없다면 고차 함수를 만들 수 없습니다
+- 고차 함수(higher-order function)
+  - 인자로 함수를 받거나 리턴 값으로 함수를 리턴할 수 있는 함수
+- 본문을 콜백으로 바꾸기(replace body with callback)이라는 리팩터링을 해보자
+
+### 반복문을 콜백으로 바꾸기
+
+```js
+// 기존 코드
+function cookAndEatFoods() {
+  for (let i = 0; i < foods.length; i++) {
+    const food = foods[i];
+    cook(food);
+    eat(food);
+  }
+}
+function cleanDishes() {
+  for (let i = 0; i < dishes.length; i++) {
+    const dish = dishes[i];
+    wash(dish);
+    dry(dish);
+    putAway(dish);
+  }
+}
+
+// 기존 코드 실행
+cookAndEatFoods();
+cleanDishes();
+```
+
+```js
+// 리팩터링 단계 1 - 인자 이름을 둘 다 item 으로 변경
+// 리팩터링 단계 2 - 함수 이름을 일반적인 이름으로 변경
+// 리팩터링 단계 3 - 배열을 인자로 받음
+// 리팩터링 단계 4 - 실행할 함수를 인자로 받음
+function operateOnArray(array, f) {
+  for (let i = 0; i < array.length; i++) {
+    const item = array[i];
+    f(item);
+  }
+}
+
+function cookAndEat(food) {
+  cook(food);
+  eat(food);
+}
+
+function clean(dish) {
+  wash(dish);
+  dry(dish);
+  putAway(dish);
+}
+
+// 리팩터링된 코드 실행
+operateOnArray(foods, cookAndEat);
+operateOnArray(dishes, clean);
+```
+
+- 리팩터링 단계
+
+  - 1. 함수 이름에 있는 암묵적 인자를 확인합니다
+  - 2. 명시적인 인자를 추가합니다
+  - 3. 함수 본문에 하드 코딩된 값을 새로운 인자로 바꿉니다
+  - 4. 함수를 호출하는 곳을 고칩니다
+
+- js의 배열 프로토타입 메서드 forEach -> 12장에서 더 자세히 다룹니다
+
+#### 리팩터링 단계
+
+- 코드를 함수로 감싸기
+- 더 일반적인 이름으로 바꾸기
+- 암묵적 인자를 드러내기
+- 함수 추출하기
+- 암묵적 인자를 드러내기
+
+## 리팩터링: 함수 본문을 콜백으로 바꾸기
+
+- 이슈
+  - try-catch를 반복해서 사용해야되는 상황
+
+```js
+// 원래 코드
+try {
+  // 앞부분
+  saveUserData(user); // 본문
+} catch (error) {
+  logToSnapErrors(error); // 뒷부분
+}
+
+try {
+  // 앞부분
+  fetchProduct(productId); // 본문
+} catch (error) {
+  logToSnapErrors(error); // 뒷부분
+}
+```
+
+- 앞부분과 뒷부분은 재사용하면서 본문을 바꿀 방법이 필요합니다
+
+1. 본문과 본문의 앞부분과 뒷부분을 구분합니다 // 이미 구분되어 있습니다
+2. 전체를 함수로 빼냅니다
+3. 본문 부분을 빼낸 함수의 인자로 전달한 함수로 바꿉니다
+
+```js
+// 함수로 빼내고 콜백으로 빼낸 코드
+function withLogging(f) {
+  try {
+    f();
+  } catch (error) {
+    logToSnapErrors(error);
+  }
+}
+// 실행 예시
+withLogging(() => saveUserData(user)); // 본문을 인라인 함수로 전달
+```
+
+## 이것은 무슨 문법인가요?
+
+- 함수를 정의하고 전달하는 일반적인 방법
+  - 1. 전역으로 정의하기
+    - 일반적인 함수 선언
+  - 2. 지역적으로 정의하기
+    - 함수 안에 함수를 선언 해당 함수 안에서만 사용
+  - 3. 인라인으로 정의하기
+    - 익명 함수를 사용(1회성)
+
+## 왜 본문을 함수로 감싸서 넘기나요?
+
+- 함수로 감싼 이유는 코드가 바로 실행되면 안되기 때문
+  - 마치 얼음 속에 있는 생선 처럼 '보관' 되어있다고 생각할 수 있습니다
+- 이 방법은 함수의 실행을 미루는 일반적인 방법입니다
+- 함수는 일급이기 때문에 함수를 정의할 수 있는 방법은 여러 가지가 있습니다
+  - 변수에 저장해서
+  - 이배열이나 객체 같은 자료구조에 보관
+  - 그냥 그대로 전달
+
+```js
+// 함수를 변수에 저장
+const saveUserDataWithLogging = () => saveUserData(user);
+
+// 컬렉션에 저장
+array.push(() => saveUserData(user));
+
+// 그냥 전달
+withLogging(() => saveUserData(user));
+```
+
+- 함수 안에 담아 실행이 미뤄진 함수는
+  - 선택적으로 호출될 수 있고
+  - 나중에 호출될 수도 있습니다
+  - 또는 어떤 문맥 안에서 실행할 수도 있습니다
+
+```js
+// 선택적으로 호출하기
+function callOnThursday(f) {
+  if (today === "Thursday") f();
+}
+
+// 나중에 호출하기
+setTimeout(() => saveUserData(user), 1000);
+
+// 어떤 문맥 안에서 실행하기
+function withLogging(f) {
+  try {
+    f();
+  } catch (error) {
+    logToSnapErrors(error);
+  }
+}
+```
+
+## 결론
+
+- 이 장에서 일급 값(first-class value)과 일급 함수(first-class function), 고차 함수(high-order function)에 대해 배웠습니다
+- 다음 장에서 이 개념의 숨은 힘에 대해 알아보겠습니다
+
+## 요점 정리
+
+- 일급 값은 변수에 저장할 수 있고 인자로 전달하거나 함수의 리턴값으로 사용할 수 있습니다
+  - 일급 값은 코드로 다룰 수 있는 값입니다
+- 언어에는 일급이 아닌 기능이 많이 있습니다. 일급이 아닌 기능은 함수로 감싸 일급으로 만들 수 있습니다
+- 어떤 언어는 함수를 일급 값처럼 쓸 수 있는 일급 함수가 있습니다
+  - 일급 함수는 어떤 단계 이상의 함수형 프로그래밍을 하는 데 필요합니다
+- 고차 함수는 다른 함수에 인자로 넘기거나 리턴 값으로 받을 수 있는 함수입니다
+  - 고차 함수로 다양한 동작을 추상화할 수 있습니다
+- 함수 이름에 있는 암묵적 인자는 함수의 이름으로 구분하는 코드의 냄새입니다
+  - 이 냄새는 코드로 다룰 수 없는 함수 이름 대신 일급 값인 인자로 바꾸는 암묵적 인자를 드러내기 리팩터링을 적용해서 없앨 수 있습니다
+- 동작을 추상화하기 위해 본문을 콜백으로 바꾸기 리팩터링을 사용할 수 있습니다
+  - 서로 다른 함수의 동작 차이를 일급 함수 인자로 만듭니다
+
+## 다음 장에서 배울 내용
+
+- 계산과 액션에서 고차함수가 얼마나 도움이 되는지 살펴봅니다
