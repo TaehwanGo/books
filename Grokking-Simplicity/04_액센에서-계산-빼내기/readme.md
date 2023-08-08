@@ -126,7 +126,7 @@ function calc_cart_total() {
 
 - 제나는 암묵적 출력 대신 명시적 출력을 사용하자고 제안하고 있습니다
 
-## 액션에서 계산 빼내기
+## 액션에서 계산 빼내기 - p. 70
 
 ```js
 // 원래 코드
@@ -143,7 +143,7 @@ function calc_cart_total() {
 ```
 
 ```js
-// 바꾼 코드 : 리팩터링 단계 1 - 서브루틴 추출하기
+// 바꾼 코드 : 리팩터링 단계 1 - 서브루틴 추출하기 : 함수로 빼내기
 function calc_cart_total() {
   calc_total(); // 새로 만든 함수를 호출
   set_cart_total_dom();
@@ -153,7 +153,7 @@ function calc_cart_total() {
 
 function calc_total() {
   // 새로 만든 함수
-  shopping_cart_total = 0;
+  shopping_cart_total = 0; // 전역변수 사용 중
   for (var i = 0; i < shopping_cart.length; i++) {
     var item = shopping_cart[i];
     shopping_cart_total += item.price;
@@ -171,12 +171,12 @@ function calc_cart_total() {
 }
 
 function calc_total(cart) {
-  var total = 0;
+  var total = 0; // 지역변수로 변경
   for (var i = 0; i < cart.length; i++) {
     var item = cart[i];
     total += item.price;
   }
-  return total;
+  return total; // 지역변수를 리턴
 }
 ```
 
@@ -231,7 +231,7 @@ function add_item_cart(name, price) {
 // 전역변수 대신 인자를 사용하도록 합니다
 function add_item(cart, name, price) {
   // 복사본을 변경하고 복사본을 리턴합니다
-  const newCart = cart.slice();
+  const newCart = cart.slice(); // 복사하는 이유 : 6장
   newCart.push({
     name,
     price,
@@ -252,7 +252,7 @@ function add_item(cart, name, price) {
 
 - 액션은 암묵적인 입력 또는 출력을 가지고 있습니다
 - 계산의 정의에 따르면 계산은 암묵적인 입력이나 출력이 없어야 합니다
-- 공유 변수(전역변수 같은)는 일반적으로 암묵적 입력 또는 출력이 됩니다
+- 공유 변수(`전역변수` 같은)는 일반적으로 암묵적 입력 또는 출력이 됩니다
 - 암묵적 입력은 인자로 바꿀 수 있습니다
 - 암묵적 출력은 리턴값으로 바꿀 수 있습니다
 - 함수형 원칙을 적용하면 액션을 줄어들고 계산은 늘어난다는 것을 확인했습니다
