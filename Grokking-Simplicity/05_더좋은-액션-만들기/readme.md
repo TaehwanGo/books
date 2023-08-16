@@ -2,7 +2,7 @@
 
 #### 이번 장에서 살펴볼 내용
 
-- 암묵적 입력과 출력을 제거해서 재사용하기 좋은 코드를 만드는 방법을 알아봅니다
+- `암묵적 입력과 출력을 제거`해서 `재사용하기 좋은 코드`를 만드는 방법을 알아봅니다
 - 복잡하게 엉킨 코드를 풀어 더 좋은 구조로 만드는 법을 배웁니다
 
 ## 비즈니스 요구 사항과 설계를 맞추기
@@ -15,7 +15,7 @@
 ```js
 /* before */
 function gets_free_shipping(total, item_price) {
-  // total, item_price는 요구사항과 맞지 않습니다
+  // total, item_price 인자는 요구사항과 맞지 않습니다
   return total + item_price >= 20;
 }
 
@@ -45,7 +45,8 @@ function calc_total(cart) {
 
 ## 비즈니스 요구 사항과 함수를 맞추기
 
-- 함수 시그니처가 바뀌었기 때문에 사용하는 부분ㄷ오 고쳐야 합니다
+- 함수의 동작을 바꿨기 때문에 엄밀히 말하면 리팩터링이라고 할 수 없습니다
+- 함수 시그니처가 바뀌었기 때문에 사용하는 부분도 고쳐야 합니다
 
 ```js
 // 원래 코드
@@ -91,6 +92,32 @@ function update_shipping_icons() {
 
 ## 코드 다시 살펴보기
 
+```js
+// 원래 코드
+function add_item_to_cart(name, price) {
+  shopping_cart = add_item(shopping_cart, name, price);
+  calc_cart_total(shopping_cart);
+}
+
+function calc_cart_total(cart) {
+  const total = calc_total(cart);
+  set_cart_total_dom(total);
+  update_shipping_icons(cart);
+  update_tax_dom(total);
+  shopping_cart_total = total;
+}
+
+// 개선한 코드
+function add_item_to_cart(name, price) {
+  shopping_cart = add_item(shopping_cart, name, price);
+
+  const total = calc_total(shopping_cart);
+  set_cart_total_dom(total);
+  update_shipping_icons(shopping_cart);
+  update_tax_dom(total);
+}
+```
+
 - 함수형 원칙을 더 적용할 수 있는 부분이 있는지 살펴보는 것도 중요하지만
 - 중복이나 불필요한 코드가 있는지도 살펴봐야 합니다
 - 과해보이는 함수는 없는지 살펴보고 과한 코드는 합쳐도 됩니다
@@ -98,7 +125,7 @@ function update_shipping_icons() {
 ## 계산 분류하기
 
 - 의미 있는 계층에 대해 알아보기 위해 계산을 분류해봅시다
-- 계층은 엉켜있는 코드를 풀면 자연스럽게 만들어집니다
+- `계층`은 `엉켜있는 코드를 풀면` 자연스럽게 `만들어집니다`
 - 다음 원칙인 엉켜있는 코드를 푸는 것에 대해 알아봅시다
 
 ## 원칙: 설계는 엉켜있는 코드를 푸는 것이다
@@ -121,6 +148,12 @@ function update_shipping_icons() {
 - 한 가지 일만 하기 때문에 한 가지만 테스트하면 됩니다
 - 함수에 특별한 문제가 없어도 꺼낼 것이 있다면 분리하는 것이 좋습니다
   - 그렇게 하면 더 좋은 설계가 됩니다
+
+### 설계 ~ 실타래(p. 98)
+
+- 설계가 없는 경우 : 실타래가 엉켜 있는 경우
+- 분리된 경우 : 실타래를 풀어 놓은 경우
+- 조합된 경우 : 문제를 풀기 위해 조합할 수 있습니다
 
 ## add_item()을 분리해 더 좋은 설계 만들기
 
@@ -159,7 +192,7 @@ add_item(shopping_cart, make_cart_item("shoes", 3.45));
 - item 구조만 알고 있는 함수(make_cart_item)와 cart 구조만 알고 있는 함수(add_item)로 분리했습니다
 - 이렇게 분리하면 cart와 item을 독립적으로 확장할 수 있습니다
 - 예를 들어, 배열인 cart를 해시 맵 같은 자료구조로 바꾼다고 할 때 변경해야 할 부분이 적습니다
-- `1.`, `3.`, `4.`는 값으르 바꿀 때 복사하는 카피-온-라이트(copy-on-write)를 구현한 부분이기 때문에 함께 두는 것이 좋습니다
+- `1.`, `3.`, `4.`는 값으르 바꿀 때 복사하는 `카피-온-라이트(copy-on-write)`를 구현한 부분이기 때문에 함께 두는 것이 좋습니다
   - 이 부분은 6장에서 자세히 다룹니다
 
 ## 카피-온-라이트 패턴을 빼내기
@@ -170,7 +203,7 @@ add_item(shopping_cart, make_cart_item("shoes", 3.45));
 - 함수 이름과 인자 이름을 더 일반적인 이름으로 바꿔봅시다
 
 ```js
-// 원래 코드(일반적이지 않은 이름)
+// 원래 코드(일반적이지 않은 이름: cart)
 function add_item(cart, item) {
   const new_cart = cart.slice();
   new_cart.push(item);
@@ -179,7 +212,7 @@ function add_item(cart, item) {
 ```
 
 ```js
-// 일반적인 이름으로 바꾼 코드
+// 일반적인 이름으로 바꾼 코드 - 어떤 곳에서도 적용할 수 있습니다
 function add_element_last(array, elem) {
   const new_array = array.slice();
   new_array.push(elem);
@@ -193,7 +226,7 @@ function add_item(cart, item) {
 ```
 
 - 장바구니와 제품에만 쓸 수 있는 함수가 아닌 어떤 배열이나 항목에도 쓸 수 있는 이름으로 바꿨습니다
-- 이 함수는 재사용할 수 있는 유틸리티 함수입니다
+- 이 함수는 `재사용할 수 있는 유틸리티 함수`입니다
 - 변경 불가능한 배열이 필요할 수도 있습니다 -> 6장, 7장에서 살펴보겠습니다
 
 ## 계산을 분류하기
@@ -341,8 +374,8 @@ function set_free_shipping_icon(button, hasFreeShipping) {
 
 ## 요점 정리
 
-- 일반적으로 암묵적 입력과 출력은 인자와 리턴값으로 바꿔 없애는 것이 좋습니다
-- 설계는 엉켜있는 것을 푸는 것입니다. 풀려있는 것은 언제든 다시 합칠 수 있습니다
+- 일반적으로 `암묵적 입력과 출력`은 `인자와 리턴값으로 바꿔` 없애는 것이 좋습니다
+- `설계는 엉켜있는 것을 푸는 것입니다. 풀려있는 것은 언제든 다시 합칠 수 있습니다`
 - 엉켜있는 것을 풀어 각 함수가 하나의 일만 하도록 하면, 개념을 중심으로 쉽게 구성할 수 있습니다
 
 ## 다음 장에서 배울 내용
