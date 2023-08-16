@@ -4,7 +4,7 @@
 
 #### 이번장에서 살펴볼 내용
 
-- 데이터가 바뀌지 않도록 하기 위해 카피-온-라이트를 적용합니다
+- `데이터가 바뀌지 않도록` 하기 위해 `카피-온-라이트`를 적용합니다
 - 배열과 객체를 데이터에 쓸 수 있는 카피-온-라이트 동작을 만듭니다
 - 깊이 중첩된 데이터도 카피-온-라이트가 잘 동작하게 만듭니다
 
@@ -30,10 +30,12 @@
 - 2. 가격 가져오기
 - 3. 이름 가져오기
 
+- 어떻게 하면 중첩된 데이터에 대한 불변 동작을 구현할 수 있을까요?
+
 ## 동작을 읽기, 쓰기 또는 둘 다로 분류하기
 
-- 읽기 : 데이터를 바꾸지 않고 정보를 꺼내는 것
-  - 만약 인자에만 의존해 정보를 가져온느 읽기 동작이라면 계산이라고 할 수 있습니다
+- `읽기` : 데이터를 바꾸지 않고 정보를 꺼내는 것
+  - 만약 인자에만 의존해 정보를 가져온느 읽기 동작이라면 `계산`이라고 할 수 있습니다
 - 쓰기 : 데이터를 바꾸는 것
   - 어디에서 사용될지 모르기 때문에 바뀌지 않도록 원칙이 필요합니다
 
@@ -58,9 +60,9 @@
 
 ## 카피-온-라이트 원칙 세 단계
 
-1. 복사본 만들기
-2. 복사본 변경하기
-3. 복사본 리턴하기
+1. `복사`본 만들기
+2. 복사본 `변경`하기
+3. 복사본 `리턴`하기
 
 ### 예시
 
@@ -72,8 +74,8 @@ function add_element_last(array, element) {
 }
 ```
 
-- 카피-온-라이트는 쓰기를 읽기로 바꿉니다
-  - 데이터를 바꾸지 않았고 정보를 리턴했기 때문에 읽기 입니다
+- `카피-온-라이트`는 `쓰기를 읽기로 바꿉니다`
+  - `데이터를 바꾸지 않았고 정보를 리턴했기 때문에` `읽기` 입니다
 
 ## 카피-온-라이트로 쓰기를 읽기로 바꾸기
 
@@ -114,11 +116,13 @@ function remove_item_by_name(cart, name) {
 
 - Array.prototype.slice() 는 배열을 얕은 복사합니다
 
-## 쓰기를 하면서 읽기도 하는 동작은 어떻게 해야 할까요?
+## 읽으면서 쓰기도 하는도 하는 동작은 어떻게 해야 할까요?
 
 - shift 같이 배열을 바꾸면서 값을 리턴하는 동작은 어떻게 해야 할까요?
+  - 1. 읽기와 쓰기 함수로 각각 분리한다
+  - 2. 함수에서 값을 두 개 리턴한다
 
-## 읽으면서 쓰기도 하는 함수를 읽기 함수로 바꾸기
+### 읽으면서 쓰기도 하는 함수를 읽기 함수로 바꾸기
 
 - 값을 두 개 리턴하는 함수로 만들기
 
@@ -130,11 +134,21 @@ function shift(array) {
 
 // after
 function shift(array) {
-  const array_copy = array.slice();
-  const first = array_copy.shift();
+  const array_copy = array.slice(); // 1. 복사본 만들기
+  const first = array_copy.shift(); // 2. 복사본 변경하기
+  // 3. 복사본 리턴하기
   return {
     first,
     array: array_copy,
+  };
+}
+
+// 또 다른 방법 - 두 값을 객체로 조합하기
+function shift(array) {
+  // 사용하는 두 함수 모두 계산이기 때문에 조합해도 이 함수는 계산입니다
+  return {
+    first: first_element(array),
+    array: drop_first(array),
   };
 }
 ```
@@ -208,11 +222,76 @@ function setPrice(item, new_price) {
 
 // after
 function setPrice(item, new_price) {
-  const new_item = Object.assign({}, item);
+  const new_item = Object.assign({}, item); // 빈객체 생성 후 그곳에 item을 할당 => 복사
   new_item.price = new_price;
   return new_item;
 }
 ```
+
+### 얕은 복사
+
+- 중첩된 데이터 구조에 최상위 데이터만 복사합니다
+
+### 구조적 공유
+
+- 두 개의 중첩된 데이터 구조가 어떤 참조를 공유한다면 구조적 공유라고 합니다
+- 구조적 공유는 메모리를 적게 사용하고, 모든 것을 복사하는 것보다 빠릅니다
+
+## 자바스크립트 객체 훑어보기
+
+- key로 value를 가져오는 방법
+
+  - `object[key]`
+  - `object.key`
+
+- 키/값 쌍 지우기
+
+  - `delete object[key]`
+  - `delete object.key`
+
+- 객체 복사하기
+
+  - `Object.assign({}, object)`
+
+- 키 목록 가져오기
+  - `Object.keys(object)`
+    - {key1: value1, key2: value2} => [key1, key2]
+
+## 연습 문제
+
+- 카피 온 라이트 연습
+
+```js
+// 1.
+o["price"] = 37;
+
+function objectSet(object, key, value) {
+  //
+}
+
+// 2. 위 objectSet 함수를 사용해서 아래 함수를 리팩터링
+function setPrice(item, new_price) {
+  const new_item = Object.assign({}, item);
+  new_item.price = new_price;
+  return new_item;
+}
+
+// 3. objectSet() 함수를 이용해 제품 개수를 설정하는 setQuantity() 함수를 만들어보세요
+function setQuantity(item, new_quantity) {
+  //
+}
+
+// 4. 객체의 키로 키/값 쌍을 지우는 delete 연산을 카피-온-라이트 버전으로 만들어보세요
+const a = { x: 1, y: 2 };
+delete a["x"];
+console.log(a); // {y: 2}
+
+function objectDelete(object, key) {
+  //
+}
+```
+
+- [ ] 발표하면서 이 문제들 같이 풀어보기
 
 ## 중첩된 쓰기를 읽기로 바꾸기
 
@@ -235,5 +314,5 @@ function setPrice(item, new_price) {
 - 카피-온-라이트 원칙은 좋습니다
 - 하지만 모든 코드에 우리가 만든 카피-온-라이트를 사용할 수는 없습니다
 - 기존에 많은 코드가 카피-온-라이트 원칙이 적용되지 않은 상태로 있습니다
-- 그래서 데이터를 변경하지 않고 데이터를 교체할 수 있는 방법이 필요합니다
-- 다음 장에서는 이러한 문제를 해결할 수 있도록 방어적 복사(defensive copy)라는 원칙에 대해 알아보겠습니다
+- 그래서 `데이터를 변경하지 않고 데이터를 교체할 수 있는 방법`이 필요합니다
+- 다음 장에서는 이러한 문제를 해결할 수 있도록 `방어적 복사(defensive copy)`라는 원칙에 대해 알아보겠습니다
