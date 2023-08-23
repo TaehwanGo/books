@@ -498,9 +498,64 @@ function indexOfItem(cart, name) {
   - 10장에서 반복문을 더 일반적으로 처리하는 방법에 대해 알아보겠습니다
 - 지금은 이대로 사용하면서 나중에 재사용할 수 있다는 가능성을 열어둡시다
 
-## TODO
+## 연습문제
 
-- 연습문제들을 풀어보기
+- isInCart() 함수와 indexOfItem() 함수는 비슷하게 생겼습니다. 비슷한 부분을 함께 쓸 수 있을까요?
+
+```js
+function isInCart(cart, name) {
+  for (let i = 0; i < cart.length; i++) {
+    if (cart[i].name === name) return true;
+  }
+  return false;
+}
+
+function indexOfItem(cart, name) {
+  for (let i = 0; i < cart.length; i++) {
+    if (cart[i].name === name) {
+      return i;
+    }
+  }
+  return null;
+}
+
+// 답
+function isInCart(cart, name) {
+  return indexOfItem(cart, name) !== null;
+}
+```
+
+- 재사용으로 코드가 짧아졌고 계층도 명확해졌다
+- 하지만 재사용을 했을 때 이런 장점이 항상 명확히 보이는 것은 아닙니다
+
+```js
+function setPriceByName(cart, name, price) {
+  const cartCopy = cart.slice();
+  for (let i = 0; i < cartCopy.length; i++) {
+    if (cartCopy[i].name === name) {
+      cartCopy[i] = setPrice(cartCopy[i], price);
+    }
+  }
+  return cartCopy;
+}
+
+// 다른 한쪽을 사용해서 만들기
+function setPriceByName(cart, name, price) {
+  const cartCopy = cart.slice();
+  const idx = indexOfItem(cartCopy, name);
+  if (idx !== null) {
+    cartCopy[idx] = setPrice(cartCopy[idx], price);
+  }
+  return cartCopy;
+}
+```
+
+- 반복문을 없앴기 때문에 코드가 더 좋아졌습니다
+- 하지만 그래프는 여전히 서로 다른 두 계층을 바라 보고 있습니다
+  - setPriceByName -> indexOfItem -> for loop(가장 낮은 계층)
+  - setPriceByName -> array index(가장 낮은 계층)
+- 대신 화살표길이 하나를 줄였다는 것에 초점을 맞춰봅시다
+- 10장에서 직접 구현을 위한 더 좋은 기술을 알려드리겠습니다
 
 ## 직접 구현 패턴 리뷰
 
