@@ -269,6 +269,55 @@ reduce(strings, "", (acc, s) => {
 
 3. 비즈니스 규칙이 있는가?
 
+## 연습 문제 - reduce() 응용
+
+```js
+// 배열에 있는 모든 수를 더하기
+function sum(numbers) {
+  return reduce(numbers, 0, (acc, n) => {
+    return acc + n;
+  });
+}
+
+// 배열에 있는 모든 수를 곱하기
+function product(numbers) {
+  return reduce(numbers, 1, (acc, n) => {
+    return acc * n;
+  });
+}
+
+// 최소값 찾기
+function min(numbers) {
+  return reduce(numbers, Number.MAX_SAFE_INTEGER, (m, n) => {
+    if (m < n) return m;
+    else return n;
+  });
+}
+
+// 최대값 찾기
+function max(numbers) {
+  return reduce(numbers, Number.MIN_SAFE_INTEGER, (m, n) => {
+    if (m > n) return m;
+    else return n;
+  });
+}
+```
+
+## 연습 문제 - 양극단의 값을 사용하는 질문들
+
+- 1. map() 함수에 빈 배열을 넘기면?
+  - map([], xToY) => []
+- 2. filter() 함수에 빈 배열을 넘기면?
+  - filter([], isGood) => []
+- 3. reduce() 함수에 빈 배열을 넘기면?
+  - reduce([], init, combine) => init
+- 4. map() 함수에 인자를 그대로 리턴하는 함수를 넘기면?
+  - 얕은 복사가 된 배열을 리턴합니다
+- 5. filter() 함수에 항상 true를 리턴하는 함수를 넘기면?
+  - 얕은 복사가 된 배열을 리턴합니다
+- 6. filter() 함수에 항상 false를 리턴하는 함수를 넘기면?
+  - 빈 배열을 리턴합니다 => []
+
 ## reduce()로 할 수 있는 것들
 
 ### 실행 취소/복귀
@@ -293,23 +342,63 @@ reduce(strings, "", (acc, s) => {
 - 다른 언어에서는 reduce() 대신 fold()라는 이름을 사용하기도 합니다
 - foldLeft, foldRight
 
+## 연습 문제 - reduce()로 map()과 filter()를 만들어보자
+
+```js
+// map() 함수를 reduce()로 만들기
+function map(array, f) {
+  return reduce(array, [], (ret, item) => {
+    return ret.concat(f([element]));
+  });
+}
+
+function map(array, f) {
+  return reduce(array, [], (ret, item) => {
+    const ret = ret.push(f(element));
+    return ret;
+  });
+}
+
+// filter() 함수를 reduce()로 만들기
+function filter(array, f) {
+  return reduce(array, [], (ret, element) => {
+    if (f(element)) return ret.concat([element]);
+    else return ret;
+  });
+}
+
+function filter(array, f) {
+  return reduce(array, [], (ret, element) => {
+    if (f(element)) return ret.push(element);
+    else return ret;
+  });
+}
+```
+
+## 세 가지 함수형 도구를 비교하기
+
+- map()
+  - 어떤 배열의 모든 항목에 함수를 적용해 새로운 배열로 바꿉니다
+- filter()
+  - 어떤 배열의 하위 집합을 선택해 새로운 배열로 만듭니다
+- reducer()
+  - 어떤 배열의 항목을 조합해 최종값을 만듭니다
+
 ## 요점 정리
 
 - map, filter, reduce는 특별한 방법으로 배열을 반복할 수 있습니다
 
   - 반복문을 대체해서 코드의 목적을 더 명확하게 할 수 있습니다
 
-- map()은 어떤 배열의 모든 항목에 함수를 적용해 새로운 배열로 바꿉니다
+- `map()`은 어떤 `배열의 모든 항목에 함수를 적용`해 `새로운 배열`로 바꿉니다
   - 각 항목은 지정한 콜백함수에 의해 변환됩니다
-- filter()는 어떤 하위 집합을 선택해 새로운 배열로 만듭니다
+- `filter()`는 `어떤 하위 집합을 선택`해 `새로운 배열`로 만듭니다
   - 술어를 전달해서 특정 항목을 선택할 수 있습니다
-- reduce()는 초기값을 가지고 어떤 배열의 항목을 조합해 하나의 값을 만듭니다
+- `reduce()`는 `초기값`을 가지고 `어떤 배열의 항목을 조합`해 `하나의 값`을 만듭니다
   - 데이터를 요약하거나 시퀀스를 하나의 값으로 만들 때 주로 사용합니다
 
 ## 다음 장에서 배울 내용
 
 - 이번 장에서 데이터 시퀀스에 사용할 수 있는 강력한 함수형 도구를 알아봤습니다
-- 다음 장에서 함수형 도구를 하나의 프로세스로 조합하는 방법을 알아보겠습니다
+- 다음 장에서 함수형 도구를 하나의 프로세스로 조합하는 방법을 알아보겠습니다(체이닝)
 - 조합해서 더 강력한 방법으로 데이터를 변환할 수 있습니다
-
-- 시스템의
