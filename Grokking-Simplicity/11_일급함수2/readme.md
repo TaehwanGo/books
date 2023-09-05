@@ -82,7 +82,7 @@ function arraySet(array, idx, value) {
 
 function withArrayCopy(array) {
   const copy = array.slice(); // 앞부분 - 공통 작업
-  // copy[idx] = value; // 본문 - 고유 작업 (함수로 빼내기)
+  copy[idx] = value; // 본문 - 고유 작업 (함수로 빼내기)
   return copy; // 뒷부분 - 공통 작업
 }
 ```
@@ -97,7 +97,7 @@ function arraySet(array, idx, value) {
 
 function withArrayCopy(array) {
   const copy = array.slice(); // 앞부분 - 공통 작업
-  // copy[idx] = value; // 본문 - 고유 작업 (함수로 빼내기)
+  copy[idx] = value; // 본문 - 고유 작업 (함수로 빼내기)
   return copy; // 뒷부분 - 공통 작업
 }
 
@@ -171,16 +171,46 @@ function tryCatch(f, errorhandler) {
 ```js
 // 리팩터링 전
 try {
-  saveUserData(user);
+  // 앞부분
+  saveUserData(user); // 본문
 } catch (error) {
+  // 뒷부분
   logToSnapErrors(error);
 }
 
+// 10장에서 리팩터링한 코드
+function withLogging(f) {
+  try {
+    f();
+  } catch (error) {
+    logToSnapErrors(error);
+  }
+}
+
+/**
+ * 문제점
+ * - 1. 어떤 부분에 로그를 남기는 것을 깜빡할 수 있습니다
+ * - 2. 모든 코드에 수동으로 withLogging() 함수를 추가해야 합니다
+ *
+ * 중복 코드를 많이 줄였지만 여전히 불편할 정도로 중복 코드가 있습니다
+ * 에러를 잡아 로그를 남길 수 있는 기능이 추가된 함수를
+ * 일반 함수 처럼 그냥 호출할 수 있으면 좋겠습니다
+ */
+// 함수로 감싸고 이름을 없애자
+function (arg) {
+  try {
+    f(arg);
+  } catch (error) {
+    logToSnapErrors(error);
+  }
+}
+
 // 리팩터링 후
+// 콜백에 인자를 추가하는 대신 이 함수를 새로운 함수로 감싸자
 function wrapLogging(f) {
   return function (arg) {
     try {
-      return f(arg);
+      f(arg);
     } catch (error) {
       logToSnapErrors(error);
     }
@@ -195,7 +225,38 @@ saveUserDataWithLogging(user);
 - -> 고차함수로 전달
 - -> 고차함수 행동을 새로운 함수로 감싸 실행을 미룹니다
 - -> 새로운 함수를 리턴합니다
-- -> 원래 행동에 새로운 행동이 추가되었습니다
+- -> 원래 행동에 `새로운 행동이 추가`되었습니다
+
+## 쉬는 시간 1
+
+- 인자가 여러개인 wrapLogging() 함수 -> wrapAlert 참고
+
+```js
+export function wrapAlert(f) {
+  return (...params) => {
+    try {
+      return f(...params);
+    } catch (error) {
+      console.error(error);
+      alert(
+        "An error occurred. Please check the console for more information."
+      );
+    }
+  };
+}
+```
+
+## 쉬는 시간 2
+
+- Q. 전체 프로그램을 고차 함수로 만들면 안되나요?
+- A. 그것이 정말 필요한가?
+  - 마치 복잡한 퍼즐을 풀고 똑똑해진 것 같은 느낌을 받을 순 있지만
+  - 좋은 엔지니어링은 퍼즐을 푸는 것이 아닙니다
+  - 효과적으로 문제를 해결할 수 있어야 합니다
+  - 만약 고차함수로 만든 좋은 방법을 찾았다면 직관적인 방법과 항상 비교해보세요
+- 요점
+  - 고차함수는 강력한 기능입니다
+  - 하지만 비용이 따릅니다
 
 ## 결론
 
@@ -210,7 +271,7 @@ saveUserDataWithLogging(user);
   - 고차 함수를 사용하지 않는다면 일일이 수작업을 해야 합니다
   - 고차함수는 한번 정의하고 필요한 곳에 여러 번 사용할 수 있습니다
 - 고차 함수로 함수를 리턴하는 함수를 만들 수 있습니다
-  - 리턴 받은 함수는 변수에 할당해서 이름이 있는 일반 함수처럼 쓸 수 있습니다
+  - `리턴 받은 함수`는 `변수에 할당해서 이름이 있는 일반 함수처럼 쓸 수 있습니다`
 - 고차 함수를 사용하면서 잃는 것도 있습니다
   - 고차 함수는 많은 중복 코드를 없애 주지만 가독성을 해칠 수도 있습니다
   - 잘 익혀서 적절한 곳에 써야 합니다
