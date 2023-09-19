@@ -520,7 +520,7 @@ function pluck(array, key) {
 
 ```js
 function concat(arrays) {
-  return reduce(arrays, [], (result, array) => [...result, ...array]);
+  return arrays.flatmap((a) => a);
 }
 ```
 
@@ -705,7 +705,7 @@ function removeOne(cart, item) {
 - 기존에 있던 반복문을 함수형 도구 체인으로 리팩터링하는 방법도 배웠습니다
 - 마지막으로 reduce()가 얼마나 강력한 도구인지 알아봤습니다
 - 함수형 프로그래머는 이런 도구를 자주 사용합니다
-  - 기보적으로 함수형 프로그래머는 게산을 데이터 변환으로 생각합니다
+  - 기본적으로 함수형 프로그래머는 게산을 데이터 변환으로 생각합니다
 
 ## 요점 정리
 
