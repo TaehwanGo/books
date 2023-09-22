@@ -342,3 +342,381 @@ const update_total_queue = Queue(); // 리턴된 함수를 원래 함수처럼 �
     - 칠판을 사용하면 선생님 한 명이 교실 전체에 정보를 공유할 수 있습니다
 - 자원을 공유하는 프로그램을 만든다면 이런 것을 모두 사용해 볼 수 있습니다
   - 다음페이지에서 앞에서 만든 코드를 재사용할 수 있도록 만들어 봅시다
+
+## 큐를 재사용할 수 있도록 만들기
+
+### done() 함수 빼내기
+
+- 함수 본문을 콜백으로 바꾸기 리팩터링으로 큐를 반복화해서 처리하는 코드(runNext()를 부르는 코드)와 큐에서 하는 일(calc_cart_total()을 부르는 코드)을 분리할 수 있습니다
+
+```js
+// 새로운 코드
+function Queue() {
+  const queue_items = [];
+  let working = false;
+
+  function runNext() {
+    if (working) {
+      return;
+    }
+    if (queue_items.length === 0) {
+      return;
+    }
+
+    working = true;
+    const cart = queue_items.shift();
+
+    // 원래 cart를 사용하지 않고 cart를 인자로 받아 지역적으로 사용합니다
+    function worker(cart, done) {
+      // done은 콜백함수 이름입니다
+      calc_cart_total(cart, function (total) {
+        update_total_dom(total);
+        done(total);
+      });
+    }
+
+    // 두 줄을 새로운 함수로 뺍니다
+    worker(cart, function () {
+      working = false;
+      runNext();
+    });
+  }
+
+  return function (cart) {
+    queue_items.push(cart);
+    setTimeout(runNext, 0);
+  };
+}
+
+const update_total_queue = Queue();
+```
+
+- done() 콜백으로 큐 타임라인 작업을 이어서 할 수 있습니다
+- 콜백함수에서 working 값을 false로 설정하고 다음 작업을 실행하기 위해 runNext()를 호출합니다
+- 이제 worker() 함수는 의존하고 있는 것이 없어서 Queue() 밖으로 빼서 인자로 전달합니다
+
+### 워커 행동을 바꿀 수 있도록 밖으로 뺍니다
+
+```js
+// 새로운 코드
+function Queue(worker) {
+  const queue_items = [];
+  let working = false;
+
+  function runNext() {
+    if (working) {
+      return;
+    }
+    if (queue_items.length === 0) {
+      return;
+    }
+
+    working = true;
+    const cart = queue_items.shift();
+
+    worker(cart, function () {
+      working = false;
+      runNext();
+    });
+  }
+
+  return function (cart) {
+    queue_items.push(cart);
+    setTimeout(runNext, 0);
+  };
+}
+
+function calc_cart_worker(cart, done) {
+  calc_cart_total(cart, function (total) {
+    update_total_dom(total);
+    done(total);
+  });
+}
+
+const update_total_queue = Queue(calc_cart_worker);
+```
+
+- 일반적인 큐를 만들었습니다
+- Queue()에 있는 기능은 모두 일반적인 기능입니다
+  - 원하는 동작은 인자로 넘길 수 있습니다
+
+### 작업이 끝났을 때 실행하는 콜백을 받기
+
+- 개발팀에서 작업이 끝났을 때 콜백을 실행하는 설정 기능이 필요하다고 합니다
+  - 추가 정보는 작업 데이터와 콜백을 작은 객체로 만들어 큐에 넣을 수 있습니다
+
+```js
+function Queue(worker) {
+  const queue_items = [];
+  let working = false;
+
+  function runNext() {
+    if (working) {
+      return;
+    }
+    if (queue_items.length === 0) {
+      return;
+    }
+
+    working = true;
+    const item = queue_items.shift(); // cart -> item으로 이름을 바꿉니다
+
+    worker(item.data, function () {
+      working = false;
+      runNext();
+    });
+  }
+
+  return function (data, callback) {
+    queue_items.push({
+      data: data,
+      callback: callback || function () {},
+    });
+    setTimeout(runNext, 0);
+  };
+}
+
+function calc_cart_worker(cart, done) {
+  calc_cart_total(cart, function (total) {
+    update_total_dom(total);
+    done(total);
+  });
+}
+
+const update_total_queue = Queue(calc_cart_worker);
+```
+
+- callback을 기본값을 설정하기 위해 관용 문법을 사용했습니다
+  - callback || function () {}
+- 현재까지 코드는 작업이 끝났을 때 실행되는 콜백을 데이터와 함께 저장했습니다
+  - 하지만 아직 콜백을 사용하지 않았습니다
+
+### 작업이 완료되었을 때 콜백 부르기
+
+```js
+function Queue(worker) {
+  const queue_items = [];
+  let working = false;
+
+  function runNext() {
+    if (working) {
+      return;
+    }
+    if (queue_items.length === 0) {
+      return;
+    }
+
+    working = true;
+    const item = queue_items.shift();
+
+    worker(item.data, function (val) {
+      working = false;
+      setTimeout(item.callback, 0, val); // 콜백에 인자를 전달합니다
+      runNext();
+    });
+  }
+
+  return function (data, callback) {
+    queue_items.push({
+      data: data,
+      callback: callback || function () {},
+    });
+    setTimeout(runNext, 0);
+  };
+}
+
+/**
+ * cart에는 제품 데이터가 들어있고
+ * done은 완료될 때 부르는 함수입니다
+ */
+function calc_cart_worker(cart, done) {
+  calc_cart_total(cart, function (total) {
+    update_total_dom(total);
+    done(total);
+  });
+}
+
+const update_total_queue = Queue(calc_cart_worker);
+```
+
+- Queue() 코드에서 item.data와 val이름을 잘 보면 일반적인 이름을 사용했습니다
+  - Queue()는 일반적인 함수이기 때문에 어떤 데이터에 사용할지 모릅니다
+- 하지만 calc_cart_work()에서는 같은 값의 변수에 cart와 total이라는 이름을 사용했습니다
+  - calc_cart_work()는 이 값이 어떤 값으로 사용할지 알기 때문입니다
+- 변수명은 구체화 단계에 따라 하는 일을 표현해야 합니다
+- 이제 큐는 재사용하기 정말 좋습니다
+  - 큐를 거치는 모든 작업을 처리하고 작업이 완료되면 타임라인이 이어서 작업을 계속합니다
+  - 이제 지금까지 한 일을 정리해 봅시다
+
+### Queue()는 액션에 새로운 능력을 줄 수 있는 고차 함수입니다
+
+- Queue()는 함수를 인자로 받아 또 다른 함수를 리턴하는 함수입니다
+
+```js
+const update_total_queue = Queue(calc_cart_worker);
+```
+
+- Queue()는 어떤 함수를 새로운 타임라인에서 실행하고 한 번에 한 타임라인만 실행할 수 있도록 만들어주는 고차함수입니다
+
+![p460](./images/p460.jpeg)
+
+- Queue()는 액션에 순서 보장(guaranteeing order)하는 슈퍼 파워를 주는 도구로 볼 수 있습니다
+- Queue()라는 말 대신 linearize()라고 할 수도 있습니다
+  - 큐가 액션 호출을 순서대로 만들기 때문입니다
+  - 내부적으로 큐를 사용하지만 큐를 사용하지만 큐를 사용한다는 것은 내부 구현일 뿐입니다
+- Queue()는 동시성 기본형(concurrency primitive)입니다
+  - 여러 타임라인을 올바르게 동작하도록 만드는 재사용 가능한 코드입니다
+  - 동시성 기본형은 방법은 다르지만 모두 실행 가능한 순서를 제한하면서 동작합니다
+  - 기대하지 않는 실행 순서를 없애면 코드가 기대한 순서로 동작한다는 것을 보장할 수 있습니다
+
+## 지금까지 만든 타임라인 분석하기
+
+![p461](./images/p461.jpeg)
+
+- 공유 리소스
+
+  - 장바구니 전역변수
+  - 큐
+  - DOM
+
+- 하나씩 올바르게 공유되고 있는지 알아봅시다
+  - 장바구니 전역변수
+    - 동시 실행(불가능)
+    - 왼쪽 먼저 실행(기대한 결과) : 가능
+    - 오른쪽 먼저 실행(기대하지 않은 결과) : 불가능
+  - DOM
+    - 동시 실행(불가능)
+    - 왼쪽 먼저 실행(기대한 결과) : 가능
+    - 오른쪽 먼저 실행(기대하지 않은 결과) : 불가능
+  - 큐
+    - 동시 실행(불가능)
+    - 왼쪽 먼저 실행(기대한 순서) : 가능
+    - 오른쪽 먼저 실행(기대한 순서) : 가능
+    - 액션의 순서가 바뀌는 것은 막을 수 없습니다
+      - 하지만 동시성 기본 큐가 모두 올바른 결과가 나오는 것을 보장해줍니다
+
+## 원칙: 문제가 있을 것 같으면 타임라인 다이어그램을 살펴보세요
+
+## 큐를 건너 뛰도록 만들기
+
+- 세라) 올바른 순서로 동작하지만 너무 느려요 !
+
+![p465](./images/p465.jpeg)
+
+- 네 번 빠르게 클릭했을 때 큐
+
+- 코드 개선 필요
+  - 다이어그램을 통해 DOM 업데이트는 큐에 있는 마지막 업데이트만 필요하다는 것을 알 수 있습니다
+
+```js
+// max: 보관할 수 있는 최대 큐 크기를 넘깁니다
+function DroppingQueue(max, worker) {
+  const queue_items = [];
+  let working = false;
+
+  function runNext() {
+    if (working) {
+      return;
+    }
+    if (queue_items.length === 0) {
+      return;
+    }
+
+    working = true;
+    const item = queue_items.shift();
+
+    worker(item.data, function (val) {
+      working = false;
+      setTimeout(item.callback, 0, val);
+      runNext();
+    });
+  }
+
+  return function (data, callback) {
+    queue_items.push({
+      data: data,
+      callback: callback || function () {},
+    });
+    while (queue_items.length > max) {
+      // 큐에 추가한 후에 항목이 max를 넘는다면 모두 버립니다
+      queue_items.shift();
+    }
+    setTimeout(runNext, 0);
+  };
+}
+
+function calc_cart_worker(cart, done) {
+  calc_cart_total(cart, function (total) {
+    update_total_dom(total);
+    done(total);
+  });
+}
+
+const update_total_queue = DroppingQueue(1, calc_cart_worker); // 한 개 이상은 모두 버립니다
+```
+
+- 사용자는 아무리 빨리 항목을 추가해도 큐 항목이 한 개 이상 늘어나지 않습니다(최대 두 번만 기다리게 됩니다)
+
+## 연습 문제
+
+- 문제 저장하기 버튼을 구현할 때 save_ajax() 호출은 서로 덮어 쓸 수 있습니다
+- 드로핑 큐를 사용해 문제를 해결해 보세요
+
+```js
+// 개선 전
+const document = {
+  // ...
+};
+
+function save_ajax(document, callback) {
+  // ...
+}
+
+saveButton.addEventListener("click", function () {
+  save_ajax(document);
+});
+```
+
+```js
+// 개선 후
+const document = {
+  // ...
+};
+
+function save_ajax(document, callback) {
+  // ...
+}
+
+const save_ajax_queued = DroppingQueue(1, save_ajax);
+
+saveButton.addEventListener("click", function () {
+  save_ajax_queued(document);
+});
+```
+
+## 결론
+
+- 이 장에서 자원 공유 문제에 대해 살펴봤습니다
+- DOM 업데이트는 특정한 순서로 발생합니다
+- 다이어 그램을 통해 문제를 찾은 다음 큐를 만들어 문제를 해결했습니다
+- 큐 코드를 고쳐 재사용 가능한 고차 함수로 만들었습니다
+
+## 요점 정리
+
+- 타이밍 문제는 재현하기 어렵고, 테스트로 확인하지 못할 수 있습니다
+  - 타임라인 다이어그램을 그려 분석하고 타이밍 문제를 확인해 보세요
+- 자원 공유 문제가 있을 때 현실에서 해결 방법을 찾아보세요
+  - 사람들은 항상 무엇인가를 문제없이 공유합니다
+  - 사람을 통해 배우세요
+- 재사용 가능한 도구를 만들면 자원 공유에 도움이 됩니다
+  - 자원 공유를 위한 도구를 동시성 기본형이라고 부릅니다
+  - 동시성 기본형을 사용하면 코드가 더 깨끗하고 단순해집니다
+- 동시성 기본형은 액션을 고차 함수로 받습니다
+  - 이 고차함수는 액션에 슈퍼파워를 줍니다
+- 동시성 기본형은 스스로 만들기 어렵지 않습니다
+  - 작은 단계부터 시작해 리팩터링 하면서 스스로 만들 수 있습니다
+
+## 다음 장에서 배울 내용
+
+- 자원 공유 문제를 확인하는 방법과 동시성 기본형으로 문제를 해결하는 것을 알아봤습니다
+- 다음 장에서 두 타임라인을 조율해 문제를 해결하는 방법을 알아보겠습니다
