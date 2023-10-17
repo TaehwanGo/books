@@ -20,3 +20,4 @@
 - [ ] [데이터 베이스 시스템(Database System Concepts)](http://www.yes24.com/Product/Goods/103156919)
 - [ ] [Introduction to Algorithms](http://www.yes24.com/Product/Goods/13776831)
 - [ ] 인스파이어드(Inspired - How to create tech products customers love)
+- [ ] SQL 개발자 - 정미나
