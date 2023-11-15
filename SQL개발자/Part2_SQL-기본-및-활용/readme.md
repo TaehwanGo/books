@@ -304,3 +304,28 @@ CASE WHEN 조건1 THEN 결과1
      ELSE 결과3
 END
 ```
+
+##### Level up test
+
+| COL1 |  COL2  |
+| :--: | :----: |
+|  가  | 가나다 |
+|  2   |  123   |
+|  C   |  ABC   |
+
+```sql
+SELECT CASE WHEN COL1 = 'C' THEN SUBSTR(COL2,2,1)
+            WHEN COL1 = '가' THEN 'C'
+            WHEN COL1 = '1' THEN '10'
+            ELSE 'B'
+       END AS RESULT
+FROM SAMPLE;
+```
+
+- 결과
+
+| RESULT |
+| :----: |
+|   C    |
+|   B    |
+|   B    |
