@@ -726,3 +726,117 @@ SELECT A.EVENT_NAME,
 FROM EVENT A, REVIEW B
 WHERE B.REG_DATE BETWEEN A.START_DATE AND A.END_DATE;
 ```
+
+#### (4) 3개 이상 테이블 JOIN
+
+#### (5) OUTER JOIN
+
+- JOIN 조건에 맞지 않는 데이터도 출력하고 싶을 때 사용하는 JOIN
+
+```sql
+SELECT A.PRODUCT_CODE,
+       A.PRODUCT_NAME,
+       B.MEMBER_ID,
+       B.CONTENT,
+       B.REG_DATE
+FROM PRODUCT A, REVIEW B
+WHERE A.PRODUCT_CODE = B.PRODUCT_CODE(+);
+```
+
+- Oracle에서는 반대편 테이블의 옆에 + 를 붙이면, +가 없는 쪽의 모든 행이 출력된다
+
+### 8. STANDARD JOIN
+
+#### (1) INNER JOIN
+
+- 앞의 EQUI JOIN과 차이점은 JOIN + ON절을 사용하여 작성
+- EQUI JOIN은 WHERE절에 조건을 명시하여 JOIN을 수행하지만 INNER JOIN은 ON절에 조건을 명시하여 JOIN을 수행한다
+
+- DISTINCT 키워드를 사용하면 중복된 데이터를 제거할 수 있다
+
+```sql
+SELECT A.PRODUCT_CODE,
+       A.PRODUCT_NAME,
+       B.MEMBER_ID,
+       B.CONTENT,
+       B.REG_DATE
+FROM PRODUCT A INNER JOIN PRODUCT_REVIEW B
+ON A.PRODUCT_CODE = B.PRODUCT_CODE;
+```
+
+#### (2) OUTER JOIN
+
+##### LEFT OUTER JOIN
+
+- 왼쪽 테이블의 모든 행을 출력하고, 오른쪽 테이블의 조건에 맞는 행을 출력한다
+
+```sql
+SELECT A.PRODUCT_CODE,
+       A.PRODUCT_NAME,
+       B.MEMBER_ID,
+       B.CONTENT,
+       B.REG_DATE
+FROM PRODUCT A LEFT OUTER JOIN PRODUCT_REVIEW B
+ON A.PRODUCT_CODE = B.PRODUCT_CODE;
+```
+
+##### RIGHT OUTER JOIN
+
+- 오른쪽 테이블의 모든 행을 출력하고, 왼쪽 테이블의 조건에 맞는 행을 출력한다
+
+```sql
+SELECT A.PRODUCT_CODE,
+       A.PRODUCT_NAME,
+       B.MEMBER_ID,
+       B.CONTENT,
+       B.REG_DATE
+FROM PRODUCT A RIGHT OUTER JOIN PRODUCT_REVIEW B
+ON A.PRODUCT_CODE = B.PRODUCT_CODE;
+```
+
+##### FULL OUTER JOIN
+
+- 왼쪽 테이블과 오른쪽 테이블의 모든 행을 출력한다
+
+```sql
+SELECT A.CAST AS R_CAST,
+       B.CAST AS I_CAST,
+FROM RUNNING_MAN A FULL OUTER JOIN INFINITE_CHALLENGE B
+ON A.CAST = B.CAST;
+```
+
+#### (3) NATURAL JOIN
+
+- 같은 이름을 가진 컬럼들이 모두 동일한 데이터를가지고 있을 경우 JOIN이 되는 방식
+- MySQL에서는 지원하지 않는다
+
+```sql
+SELECT * FROM RUNNING_MAN A
+NATURAL JOIN INFINITE_CHALLENGE B;
+```
+
+```sql
+SELECT CAST,
+       GENDER,
+       A.JOB AS R_JOB,
+       B.JOB AS I_JON
+FROM RUNNING_MAN A JOIN INFINITE_CHALLENGE B
+USING (CAST, GENDER);
+```
+
+- Oracle에서는 USING 조건절을 이용하여 같은 이름을 가진 컬럼 중 원하는 컬럼만 JOIN에 이용할 수 있다
+  - 원래 기본은 모든 컬럼을 이용해서 모든 컬럼의 모든 값이 같은 경우에만 JOIN이 되지만, USING 조건절을 이용하면 원하는 컬럼만 이용해서 JOIN이 가능하다
+- 단, USING절로 정의된 컬럼은 SELECT절에서도 다른절에서도 별도의 ALIAS나 테이블명을 붙이지 않아야 한다
+
+#### (4) CROSS JOIN
+
+- 두 테이블 사이의 모든 경우의 수를 출력한다
+
+```sql
+SELECT A.NAME,
+       A.JOB,
+       A.BIRTHDAY,
+       B.DRINK_CODE,
+       B.DRINK_NAME
+FROM ENTERTAINER A CROSS JOIN DRINK B;
+```
