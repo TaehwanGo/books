@@ -447,3 +447,206 @@ FROM STARBUCKS_ORDER
 GROUP BY ROLLUP(ORDER_DT, ORDER_ITEM)
 ORDER BY ORDER_DT;
 ```
+
+### 5. 윈도우 함수
+
+- OVER 키워드와 함께 사용되며 역할에 따라 다음과 같이 나눌 수 있다
+- 순위 함수 : RANK, DENSE_RANK, ROW_NUMBER
+- 집계 함수 : SUM, AVG, COUNT, MAX, MIN
+- 행 순서 함수 : FIRST_VALUE, LAST_VALUE, LEAD, LAG
+- 비율 함수 : CUME_DIST, PERCENT_RANK, NTILE, RATIO_TO_REPORT
+
+#### (1) 순위 함수
+
+| 함수       | 설명                                             | 예시          |
+| ---------- | ------------------------------------------------ | ------------- |
+| RANK       | 동일 순위가 존재하면 다음 순위를 건너뛴다        | 1, 2, 2, 4, 5 |
+| DENSE_RANK | 동일 순위가 존재하면 다음 순위를 건너뛰지 않는다 | 1, 2, 2, 3, 4 |
+| ROW_NUMBER | 동일 순위가 존재하더라도 순위를 건너뛰지 않는다  | 1, 2, 3, 4, 5 |
+
+##### RANK
+
+- 순위를 매기면서 같은 순위가 존재하면 존재하는 수만큼 다음 순위를 건너뛴다
+
+```sql
+-- 날짜별로 주문 건수를 카운트한 순위
+SELECT ORDER_DT, COUNT(*),
+       RANK() OVER(ORDER BY COUNT(*) DESC) AS RANK
+FROM STARBUCKS_ORDER
+GROUP BY ORDER_DT;
+```
+
+| ORDER_DT | COUNT(\*) | RANK |
+| -------- | --------- | ---- |
+| 20190102 | 13        | 1    |
+| 20190104 | 12        | 2    |
+| 20190103 | 12        | 2    |
+| 20190105 | 8         | 4    |
+
+##### DENSE_RANK
+
+```sql
+-- 날짜별로 주문 건수를 카운트한 순위
+SELECT ORDER_DT, COUNT(*),
+       DENSE_RANK() OVER(ORDER BY COUNT(*) DESC) AS RANK
+FROM STARBUCKS_ORDER
+GROUP BY ORDER_DT;
+```
+
+| ORDER_DT | COUNT(\*) | RANK |
+| -------- | --------- | ---- |
+| 20190102 | 13        | 1    |
+| 20190104 | 12        | 2    |
+| 20190103 | 12        | 2    |
+| 20190105 | 8         | 3    |
+
+##### ROW_NUMBER
+
+```sql
+-- 날짜별로 주문 건수를 카운트한 순위
+SELECT ORDER_DT, COUNT(*),
+       ROW_NUMBER() OVER(ORDER BY COUNT(*) DESC) AS RANK
+FROM STARBUCKS_ORDER
+GROUP BY ORDER_DT;
+```
+
+| ORDER_DT | COUNT(\*) | RANK |
+| -------- | --------- | ---- |
+| 20190102 | 13        | 1    |
+| 20190104 | 12        | 2    |
+| 20190103 | 12        | 3    |
+| 20190105 | 8         | 4    |
+
+#### (2) 집계 함수
+
+##### SUM
+
+```sql
+SELECT SUM(SCORE) AS TOTAL_SCORE FROM SQLD;
+```
+
+- SQLD 시험 성적 데이터에서 모든 사람들의 점수를 합한 결과
+
+| TOTAL_SCORE |
+| ----------- |
+| 210         |
+
+```sql
+-- 개인별 총점수를 구하는 쿼리
+SELECT STUDENT_NAME, SUBJECT, SCORE,
+       SUM(SCORE) OVER(PARTITION BY STUDENT_NAME) AS TOTAL_SCORE
+FROM SQLD;
+```
+
+| STUDENT_NAME | SUBJECT             | SCORE | TOTAL_SCORE |
+| ------------ | ------------------- | ----- | ----------- |
+| 김철수       | 데이터모델링의 이해 | 19    | 96          |
+| 김철수       | SQL 기본 및 활용    | 19    | 77          |
+
+##### MAX
+
+```sql
+-- 과목별 최대 점수를 받은 사람만 출력
+SELECT STUDENT_NAME,
+       SUBJECT,
+       SCORE,
+FROM (
+  SELECT STUDENT_NAME,
+         SUBJECT,
+         SCORE,
+         MAX(SCORE) OVER(PARTITION BY SUBJECT) AS MAX_SCORE
+  FROM SQLD
+)
+WHERE SCORE = MAX_SCORE;
+```
+
+##### MIN
+
+- 데이터의 최솟값을 구하는 함수
+
+```sql
+-- 과목별 최소 점수를 받은 사람만 출력
+SELECT STUDENT_NAME,
+       SUBJECT,
+       SCORE,
+FROM (
+  SELECT STUDENT_NAME,
+         SUBJECT,
+         SCORE,
+         MIN(SCORE) OVER(PARTITION BY SUBJECT) AS MIN_SCORE
+  FROM SQLD
+)
+WHERE SCORE = MIN_SCORE;
+```
+
+- PARTITION BY {컬럼} 은 컬럼을 기준으로 그룹핑을 하겠다는 의미이다
+
+##### AVG
+
+```sql
+-- 과목별 평균 점수 이상을 받은 사람만 출력
+SELECT STUDENT_NAME,
+       SUBJECT,
+       SCORE,
+FROM (
+  SELECT STUDENT_NAME,
+         SUBJECT,
+         SCORE
+         ROUND(AVG(SCORE) OVER(PARTITION BY SUBJECT)) AS AVG_SCORE
+  FROM SQLD
+)
+WHERE SCORE >= AVG_SCORE;
+```
+
+| STUDENT_NAME | SUBJECT             | SCORE |
+| ------------ | ------------------- | ----- |
+| 김철수       | 데이터모델링의 이해 | 19    |
+| 김철수       | SQL 기본 및 활용    | 77    |
+| 이솔         | 데이터모델링의 이해 | 15    |
+
+##### COUNT
+
+- 데이터 건수를 카운트하는 함수
+
+#### (3) 행 순서 함수
+
+##### FIRST_VALUE
+
+- 파티션 별 가장 선두에 위치한 데이터를 구하는 함수
+- MySQL에서는 지원하지 않는다
+
+##### LAST_VALUE
+
+- 파티션 별 가장 마지막에 위치한 데이터를 구하는 함수
+- MySQL에서는 지원하지 않는다
+
+##### LAG
+
+- 파티션 별로 특정 수만큼 앞선 데이터를 구하는 함수
+- MySQL에서는 지원하지 않는다
+
+##### LEAD
+
+- 파티션 별 특정 수만큼 뒤에 있는 데이터를 구하는 함수
+- MySQL에서는 지원하지 않는다
+
+#### (4) 비율 함수
+
+##### RATIO_TO_REPORT
+
+- 파티션 별 합계에서 차지하는 비율을 구하는 함수
+- MySQL에서는 지원하지 않는다
+
+##### PERCENT_RANK
+
+- 해당 파티션의 맨위 값이 0, 맨 아래 값이 1이 되도록 0~1 사이의 값을 반환하는 함수
+- MySQL에서는 지원하지 않는다
+
+##### CUME_DIST
+
+- 해당 파티션에서 누적 백분율을 구하는 함수
+- MySQL에서는 지원하지 않는다
+
+##### NTILE
+
+- 주어진 수만큼 행들을 n등분한 후 현재 행에 해당하는 등급을 구하는 함수
