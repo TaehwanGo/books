@@ -12,12 +12,12 @@
 - [x] 소프트웨어 장인
 - [x] 린 스타트업
 - [x] UX/UI의 10가지 심리학 법칙(Laws of UX)
-- [ ] 쏙쏙 들어오는 함수형 코딩(Grokking Simplicity)
-- [ ] 유연함의 힘(The Power of Flexing)
+- [x] 쏙쏙 들어오는 함수형 코딩(Grokking Simplicity)
+- [x] 유연함의 힘(The Power of Flexing)
 - [ ] 클린 아키텍쳐
 - [ ] 실용주의 프로그래머
 - [ ] [컴퓨터 네트워킹 : 하향식 접근(Computer Networking: A Top-Down Approach)](http://www.yes24.com/Product/Goods/112228953)
 - [ ] [데이터 베이스 시스템(Database System Concepts)](http://www.yes24.com/Product/Goods/103156919)
 - [ ] [Introduction to Algorithms](http://www.yes24.com/Product/Goods/13776831)
 - [ ] 인스파이어드(Inspired - How to create tech products customers love)
-- [ ] SQL 개발자 - 정미나
+- [x] SQL 개발자 - 정미나
