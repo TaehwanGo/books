@@ -1,0 +1,77 @@
+{
+  "format": 1,
+  "restore": {
+    "/Users/gotaehwan/projects/books/Unit-Testing/example-code/Book/Book.csproj": {}
+  },
+  "projects": {
+    "/Users/gotaehwan/projects/books/Unit-Testing/example-code/Book/Book.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/gotaehwan/projects/books/Unit-Testing/example-code/Book/Book.csproj",
+        "projectName": "Book",
+        "projectPath": "/Users/gotaehwan/projects/books/Unit-Testing/example-code/Book/Book.csproj",
+        "packagesPath": "/Users/gotaehwan/.nuget/packages/",
+        "outputPath": "/Users/gotaehwan/projects/books/Unit-Testing/example-code/Book/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/gotaehwan/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net47"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net47": {
+            "targetAlias": "net47",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net47": {
+          "targetAlias": "net47",
+          "dependencies": {
+            "Dapper": {
+              "target": "Package",
+              "version": "[1.60.6, )"
+            },
+            "FluentAssertions": {
+              "target": "Package",
+              "version": "[5.5.3, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[2.2.4, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[2.2.4, )"
+            },
+            "Microsoft.NETFramework.ReferenceAssemblies": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.0.3, )",
+              "autoReferenced": true
+            },
+            "Moq": {
+              "target": "Package",
+              "version": "[4.10.1, )"
+            },
+            "xunit": {
+              "target": "Package",
+              "version": "[2.4.1, )"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/7.0.400/RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}
