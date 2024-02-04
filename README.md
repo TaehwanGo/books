@@ -21,3 +21,4 @@
 - [ ] [Introduction to Algorithms](http://www.yes24.com/Product/Goods/13776831)
 - [ ] 인스파이어드(Inspired - How to create tech products customers love)
 - [x] SQL 개발자 - 정미나
+- [ ] 소프트웨어 아키텍처 101
