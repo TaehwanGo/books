@@ -22,3 +22,4 @@
 - [ ] 인스파이어드(Inspired - How to create tech products customers love)
 - [x] SQL 개발자 - 정미나
 - [ ] 소프트웨어 아키텍처 101
+- [ ] 프로덕트 매니저 원칙
